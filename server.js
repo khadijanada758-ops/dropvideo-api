@@ -8,23 +8,23 @@ app.use(express.json({ limit: "64kb" }));
 
 const PORT = process.env.PORT || 10000;
 
-function validUrl(v) {
+function validUrl(value) {
   try {
-    const u = new URL(v);
+    const u = new URL(value);
     return ["http:", "https:"].includes(u.protocol);
   } catch {
     return false;
   }
 }
 
-app.get("/", (_, res) => {
+app.get("/", (req, res) => {
   res.json({
     ok: true,
     name: "DropVideo API"
   });
 });
 
-app.get("/api/health", (_, res) => {
+app.get("/api/health", (req, res) => {
   res.json({
     ok: true
   });
@@ -42,8 +42,8 @@ app.post("/api/info", async (req, res) => {
 
   try {
     /*
-      هنا خاصك تربط خدمة المعالجة المسموح بها
-      ديالك إذا كان الرابط تابع لمحتوى تملكه أو عندك إذن باستعماله.
+      ضع هنا منطق معالجة الروابط المسموح بها
+      للمحتوى الذي تملكه أو لديك إذن باستخدامه.
     */
 
     return res.json({
@@ -54,13 +54,12 @@ app.post("/api/info", async (req, res) => {
       uploader: null
     });
 
-  } catch (e) {
-
-    console.error("INFO ERROR:", e);
+  } catch (error) {
+    console.error("INFO ERROR:", error);
 
     return res.status(500).json({
       ok: false,
-      error: e?.message || "Could not analyze this URL"
+      error: error?.message || "Could not analyze this URL"
     });
   }
 });
@@ -78,6 +77,15 @@ app.post("/api/download", async (req, res) => {
   return res.status(501).json({
     ok: false,
     error: "Download endpoint is not configured"
+  });
+});
+
+app.use((err, req, res, next) => {
+  console.error("SERVER ERROR:", err);
+
+  res.status(500).json({
+    ok: false,
+    error: err?.message || "Internal server error"
   });
 });
 
